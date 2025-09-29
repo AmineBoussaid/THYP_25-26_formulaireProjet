@@ -45,11 +45,18 @@
     catch { return s; }
   }
 
-  // === Google Drive image direct link ===
-  function gdriveImg(url) {
-    let id = url.match(/[-\w]{25,}/);
-    return id ? `https://drive.google.com/uc?export=view&id=${id[0]}` : url;
+// === Google Drive image direct link (compatible /d/ID/… et ?id=ID) ===
+function gdriveImg(url) {
+  if (!url) return url;
+  // Cherche un ID de type /d/ID/
+  let id = url.match(/\/d\/([-\w]{25,})/);
+  if (!id) {
+    // Cherche un ID de type ?id=ID
+    id = url.match(/[?&]id=([-\w]{25,})/);
   }
+  return id ? `https://drive.google.com/uc?export=view&id=${id[1]}` : url;
+}
+
 
   // === BUILD CARDS ===
   function buildCard(row){
