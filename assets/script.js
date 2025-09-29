@@ -46,54 +46,73 @@
   }
 
   // === BUILD CARDS ===
-  function buildCard(row){
-    const titleKey = pickFirstKey(row, TITLE_HINTS);
-    const sumKey = pickFirstKey(row, SUMMARY_HINTS);
-    const title = norm(row[titleKey]) || "Projet sans titre";
-    const summary = norm(row[sumKey]) || "";
+function buildCard(row){
+  const titleKey = pickFirstKey(row, TITLE_HINTS);
+  const sumKey = pickFirstKey(row, SUMMARY_HINTS);
+  const title = norm(row[titleKey]) || "Projet sans titre";
+  const summary = norm(row[sumKey]) || "";
 
-    const sections = [];
-    for(const [label, columns] of Object.entries(GROUPS)){
-      const present = columns.map(c => Object.keys(row).find(k => lc(k) === lc(c))).filter(Boolean);
-      if(present.length){
-        const items = present.map(k => {
-          const v = norm(row[k]);
-          if(!v) return null;
-          const parts = splitMulti(v);
-          if(parts.length > 1) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div>${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</div>`;
-          if(isLikelyUrl(v)) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><div><a href="${escapeUrl(v)}" target="_blank">${escapeHtml(v)}</a></div></div>`;
-          return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><div>${escapeHtml(v)}</div></div>`;
-        }).filter(Boolean);
-        if(items.length) sections.push(`<div class="mb-2"><div class="muted fw-semibold mb-1">${label}</div>${items.join("")}</div>`);
-      }
-    }
-
-    const groupedKeys = new Set([].concat(...Object.values(GROUPS)).map(x=>lc(x)));
-    if(titleKey) groupedKeys.add(lc(titleKey));
-    if(sumKey) groupedKeys.add(lc(sumKey));
-
-    const misc = Object.keys(row).filter(k=>lc(k) && !groupedKeys.has(lc(k)) && norm(row[k]))
-      .map(k=>{
+  const sections = [];
+  for(const [label, columns] of Object.entries(GROUPS)){
+    const present = columns.map(c => Object.keys(row).find(k => lc(k) === lc(c))).filter(Boolean);
+    if(present.length){
+      const items = present.map(k => {
         const v = norm(row[k]);
-        const parts = splitMulti(v);
-        if(parts.length>1) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</span>`;
-        if(isLikelyUrl(v)) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> <a href="${escapeUrl(v)}" target="_blank">${escapeHtml(v)}</a></span>`;
-        return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${escapeHtml(v)}</span>`;
-      });
+        if(!v) return null;
 
-    return `
-      <div class="col">
-        <div class="card h-100">
-          <div class="card-body">
-            <h5 class="card-title mb-1">${escapeHtml(title)}</h5>
-            ${summary ? `<p class="card-text">${escapeHtml(summary)}</p>` : ""}
-            ${sections.join("")}
-            ${misc.length ? `<div class="mt-2">${misc.join(" ")}</div>` : ""}
-          </div>
+        // Images Drive
+        if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)){
+          const imgUrl = gdriveImg(v);
+          return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><img src="${imgUrl}" class="card-img" alt="${escapeHtml(k)}"></div>`;
+        }
+
+        // Fichiers (PDF, doc)
+        if(isLikelyUrl(v) && /\.(pdf|docx?|xlsx?|pptx?)$/i.test(v)){
+          return `<div class="file-preview"><a href="${escapeUrl(v)}" target="_blank">${escapeHtml(k)}</a></div>`;
+        }
+
+        // Multi-éléments
+        const parts = splitMulti(v);
+        if(parts.length > 1) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div>${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</div>`;
+
+        // Code projet
+        if(lc(k).includes("code")) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><pre style="background:#f5f5f5;padding:5px;border-radius:4px;overflow-x:auto;">${escapeHtml(v)}</pre></div>`;
+
+        // Texte classique
+        return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><div>${escapeHtml(v)}</div></div>`;
+      }).filter(Boolean);
+      if(items.length) sections.push(`<div class="mb-2"><div class="muted fw-semibold mb-1">${label}</div>${items.join("")}</div>`);
+    }
+  }
+
+  const groupedKeys = new Set([].concat(...Object.values(GROUPS)).map(x=>lc(x)));
+  if(titleKey) groupedKeys.add(lc(titleKey));
+  if(sumKey) groupedKeys.add(lc(sumKey));
+
+  const misc = Object.keys(row).filter(k=>lc(k) && !groupedKeys.has(lc(k)) && norm(row[k]))
+    .map(k=>{
+      const v = norm(row[k]);
+      const parts = splitMulti(v);
+      if(parts.length>1) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</span>`;
+      if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)) return `<img src="${gdriveImg(v)}" class="card-img">`;
+      if(isLikelyUrl(v)) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> <a href="${escapeUrl(v)}" target="_blank">${escapeHtml(v)}</a></span>`;
+      return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${escapeHtml(v)}</span>`;
+    });
+
+  return `
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title mb-1">${escapeHtml(title)}</h5>
+          ${summary ? `<p class="card-text">${escapeHtml(summary)}</p>` : ""}
+          ${sections.join("")}
+          ${misc.length ? `<div class="mt-2">${misc.join(" ")}</div>` : ""}
         </div>
       </div>
-    `;
-  }
+    </div>
+  `;
+}
+
 
   function render(){
     const grid = document.getElementById("grid");
