@@ -1,13 +1,13 @@
 (function(){
   // === CONFIG ===
-  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4ybpehNFsjedAtbGrVbK5g8N3tYesdpf03RnMoH4UsbWPDz_oYZ43rAXKF2b2a96ozzjD-LTpkV56/pub?output=csv";
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4ybpehNFsjedAtbGrVbK5g8N3tYesdpf03RnMoH4UsbWPDz_oYZ43rAXKF2b2a96ozzjD-LTpkV56/pub?gid=837220721&single=true&output=csv"; // <--- Mets ici le lien CSV publié de ton Google Sheets
 
-  const TITLE_HINTS = ["Titre du projet","Titre","Project title","Nom du projet"];
-  const SUMMARY_HINTS = ["Résumé","Résumé du projet","Description","Pitch","Synthèse"];
+  const TITLE_HINTS = ["Titre du projet"];
+  const SUMMARY_HINTS = ["Description détaillée"];
 
   const GROUPS = {
-    "Contenu & objectifs": ["Objectifs","Problématique","Public cible","Audience","Cible"],
-    "Aspects techniques": ["Technologies","Fonctionnalités"]
+    "Contenu & objectifs": ["Objectifs","Public cible","Membres de l’équipe","Commentaires additionnels"],
+    "Aspects techniques": ["Technologies utilisées","Type de projet","Ressources nécessaires","Lien vers le dépôt","Date de début prévue","Date de fin","Durée estimée","Budget estimé"]
   };
 
   let RAW = [];
@@ -142,22 +142,15 @@
       RAW.forEach(r=>Object.keys(r).forEach(k=>keySet.add(k)));
       ALL_KEYS = Array.from(keySet);
       populateKeySelect();
-      FILTERED = RAW.slice();
+      FILTERED = [...RAW];
       render();
     }
   });
 
-  // === ÉCOUTEURS ===
+  // === EVENT SEARCH ===
   const qInput = document.getElementById("q");
-  const keySel = document.getElementById("keySelect");
+  const keySelect = document.getElementById("keySelect");
+  qInput.addEventListener("input",()=>{ FILTERED = searchFilter(qInput.value,keySelect.value); render(); });
+  keySelect.addEventListener("change",()=>{ FILTERED = searchFilter(qInput.value,keySelect.value); render(); });
 
-  function applyFilters(){
-    const q = qInput.value||"";
-    const key = keySel.value||"";
-    FILTERED = searchFilter(q,key);
-    render();
-  }
-
-  qInput.addEventListener("input", applyFilters);
-  keySel.addEventListener("change", applyFilters);
 })();
