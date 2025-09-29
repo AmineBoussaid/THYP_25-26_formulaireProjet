@@ -1,6 +1,6 @@
 (function(){
   // === CONFIG ===
-  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vREH0YrVGx0VyRdsIamPOa4NWriyGPgDFFbpRcR5vwRdVtaU8SV4TxhU6yHDYswrlwHh3BKp8BkxHyY/pub?output=csv";
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4ybpehNFsjedAtbGrVbK5g8N3tYesdpf03RnMoH4UsbWPDz_oYZ43rAXKF2b2a96ozzjD-LTpkV56/pub?output=csv";
 
   const TITLE_HINTS = ["Titre du projet","Titre","Project title","Nom du projet"];
   const SUMMARY_HINTS = ["Résumé","Résumé du projet","Description","Pitch","Synthèse"];
