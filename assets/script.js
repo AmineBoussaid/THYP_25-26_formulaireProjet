@@ -6,14 +6,8 @@
   const SUMMARY_HINTS = ["Description détaillée"];
 
   const GROUPS = {
-    "Contenu & objectifs": [
-      "Objectifs","Public cible","Membres de l’équipe","Commentaires additionnels"
-    ],
-    "Aspects techniques": [
-      "Technologies utilisées","Type de projet","Ressources nécessaires",
-      "Lien vers le dépôt","Date de début prévue","Date de fin",
-      "Durée estimée","Budget estimé"
-    ]
+    "Contenu & objectifs": ["Objectifs","Public cible","Membres de l’équipe","Commentaires additionnels"],
+    "Aspects techniques": ["Technologies utilisées","Type de projet","Ressources nécessaires","Lien vers le dépôt","Date de début prévue","Date de fin","Durée estimée","Budget estimé"]
   };
 
   let RAW = [];
@@ -22,11 +16,11 @@
 
   // === UTILITAIRES ===
   const norm = s => (s||"").toString().trim();
-  const normalize = s => norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  const lc = s => norm(s).toLowerCase();
 
   function pickFirstKey(obj, hints){
     for(const h of hints){
-      const k = Object.keys(obj).find(k => normalize(k) === normalize(h));
+      const k = Object.keys(obj).find(k => lc(k) === lc(h));
       if(k) return k;
     }
     return null;
@@ -38,14 +32,12 @@
   }
 
   function isLikelyUrl(s){
-    try { new URL(s); return true; }
-    catch { return false; }
+    return /^https?:\/\/|^www\./i.test(s);
   }
 
   function escapeHtml(s){
-    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")
-            .replace(/>/g,"&gt;").replace(/"/g,"&quot;")
-            .replace(/'/g,"&#39;");
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+            .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   }
 
   function escapeUrl(s){
@@ -53,12 +45,30 @@
     catch { return s; }
   }
 
-  // === Google Drive image link ===
-  function gdriveImg(url) {
-    if (!url) return url;
-    const id = url.match(/(?:\/d\/|[?&]id=)([-\w]{25,})/)?.[1];
-    return id ? `https://drive.google.com/uc?export=view&id=${id}` : url;
+  // === Google Drive image direct link ===
+function gdriveImg(url) {
+  if (!url) return url;
+  let id = null;
+
+  // Cas ?id=xxxx
+  let urlObj;
+  try {
+    urlObj = new URL(url);
+    if (urlObj.searchParams.get("id")) {
+      id = urlObj.searchParams.get("id");
+    }
+  } catch (e) {}
+
+  // Cas /d/xxxx/
+  if (!id) {
+    let m = url.match(/\/d\/([-\w]{25,})/);
+    if (m) id = m[1];
   }
+
+  // Si un ID trouvé → lien affichable
+  return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1000` : url;
+}
+
 
   // === BUILD CARDS ===
   function buildCard(row){
@@ -69,64 +79,45 @@
 
     const sections = [];
     for(const [label, columns] of Object.entries(GROUPS)){
-      const present = columns.map(c => Object.keys(row).find(k => normalize(k) === normalize(c))).filter(Boolean);
+      const present = columns.map(c => Object.keys(row).find(k => lc(k) === lc(c))).filter(Boolean);
       if(present.length){
         const items = present.map(k => {
           const v = norm(row[k]);
           if(!v) return null;
 
-          // Images Drive (affichage direct)
+          // Images Drive
           if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)){
+            const imgUrl = gdriveImg(v);
             return `<div class="mb-2">
                       <div class="key">${escapeHtml(k)}</div>
-                      <img src="${gdriveImg(v)}" class="card-img" alt="${escapeHtml(k)}">
+                      <img src="${imgUrl}" class="card-img" alt="${escapeHtml(k)}">
                     </div>`;
           }
 
-          // Fichiers (PDF, DOC, etc.)
+          // Fichiers (PDF, DOC)
           if(isLikelyUrl(v) && /\.(pdf|docx?|xlsx?|pptx?)$/i.test(v)){
-            return `<div class="file-preview">
-                      <a href="${escapeUrl(v)}" target="_blank">${escapeHtml(k)}</a>
-                    </div>`;
+            return `<div class="file-preview"><a href="${escapeUrl(v)}" target="_blank">${escapeHtml(k)}</a></div>`;
           }
 
           // Multi-éléments
           const parts = splitMulti(v);
-          if(parts.length > 1){
-            return `<div class="mb-2">
-                      <div class="key">${escapeHtml(k)}</div>
-                      ${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}
-                    </div>`;
-          }
+          if(parts.length > 1) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div>${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</div>`;
 
-          // Bloc de code
-          if(normalize(k).includes("code")){
-            return `<div class="mb-2">
-                      <div class="key">${escapeHtml(k)}</div>
-                      <pre>${escapeHtml(v)}</pre>
-                    </div>`;
-          }
+          // Code projet
+          if(lc(k).includes("code")) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><pre style="background:#f5f5f5;padding:5px;border-radius:4px;overflow:auto; max-height:200px;">${escapeHtml(v)}</pre></div>`;
 
-          // Texte par défaut
+          // Texte classique
           return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><div>${escapeHtml(v)}</div></div>`;
         }).filter(Boolean);
-
-        if(items.length){
-          sections.push(`<div class="mb-2">
-                          <div class="muted fw-semibold mb-1">${label}</div>
-                          ${items.join("")}
-                        </div>`);
-        }
+        if(items.length) sections.push(`<div class="mb-2"><div class="muted fw-semibold mb-1">${label}</div>${items.join("")}</div>`);
       }
     }
 
-    // Autres champs non groupés
-    const groupedKeys = new Set([].concat(...Object.values(GROUPS)).map(x=>normalize(x)));
-    if(titleKey) groupedKeys.add(normalize(titleKey));
-    if(sumKey) groupedKeys.add(normalize(sumKey));
+    const groupedKeys = new Set([].concat(...Object.values(GROUPS)).map(x=>lc(x)));
+    if(titleKey) groupedKeys.add(lc(titleKey));
+    if(sumKey) groupedKeys.add(lc(sumKey));
 
-    const misc = Object.keys(row)
-      .filter(k=>normalize(k) && !groupedKeys.has(normalize(k)) && norm(row[k]))
+    const misc = Object.keys(row).filter(k=>lc(k) && !groupedKeys.has(lc(k)) && norm(row[k]))
       .map(k=>{
         const v = norm(row[k]);
         const parts = splitMulti(v);
@@ -150,26 +141,20 @@
     `;
   }
 
-  // === RENDER ===
   function render(){
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
-    if(!FILTERED.length) {
-      grid.innerHTML="<p>Aucun projet trouvé.</p>";
-      document.getElementById("count").textContent = "0 projet affiché";
-      return;
-    }
+    if(!FILTERED.length) return grid.innerHTML="<p>Aucun projet trouvé.</p>";
     grid.innerHTML = FILTERED.map(buildCard).join("");
     document.getElementById("count").textContent = `${FILTERED.length} projet(s) affiché(s)`;
   }
 
-  // === FILTRE ===
   function filter(q, key){
-    q = normalize(q);
+    q = lc(q);
     FILTERED = RAW.filter(r=>{
       if(!q) return true;
-      if(key) return normalize(r[key]||"").includes(q);
-      return Object.values(r).some(v=>normalize(v||"").includes(q));
+      if(key) return lc(r[key]||"").includes(q);
+      return Object.values(r).some(v=>lc(v||"").includes(q));
     });
     render();
   }
@@ -184,11 +169,7 @@
       FILTERED = [...RAW];
       ALL_KEYS = Object.keys(RAW[0] || {});
       const sel = document.getElementById("keySelect");
-      ALL_KEYS.forEach(k=>{
-        const opt = document.createElement("option");
-        opt.value=k; opt.textContent=k;
-        sel.appendChild(opt);
-      });
+      ALL_KEYS.forEach(k=>{ const opt = document.createElement("option"); opt.value=k; opt.textContent=k; sel.appendChild(opt); });
       document.getElementById("downloadCsv").href = CSV_URL;
       render();
     }
