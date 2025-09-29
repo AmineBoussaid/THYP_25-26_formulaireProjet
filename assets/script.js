@@ -46,29 +46,24 @@
   }
 
   // === Google Drive image direct link ===
-function gdriveImg(url) {
-  if (!url) return url;
-  let id = null;
+  function gdriveImg(url) {
+    if (!url) return url;
+    let id = null;
 
-  // Cas ?id=xxxx
-  let urlObj;
-  try {
-    urlObj = new URL(url);
-    if (urlObj.searchParams.get("id")) {
-      id = urlObj.searchParams.get("id");
+    try {
+      let urlObj = new URL(url);
+      if (urlObj.searchParams.get("id")) {
+        id = urlObj.searchParams.get("id");
+      }
+    } catch (e) {}
+
+    if (!id) {
+      let m = url.match(/\/d\/([-\w]{25,})/);
+      if (m) id = m[1];
     }
-  } catch (e) {}
 
-  // Cas /d/xxxx/
-  if (!id) {
-    let m = url.match(/\/d\/([-\w]{25,})/);
-    if (m) id = m[1];
+    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1000` : url;
   }
-
-  // Si un ID trouvé → lien affichable
-  return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1000` : url;
-}
-
 
   // === BUILD CARDS ===
   function buildCard(row){
@@ -85,16 +80,18 @@ function gdriveImg(url) {
           const v = norm(row[k]);
           if(!v) return null;
 
-          // Images Drive
-          if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)){
+          // Images (Drive ou classiques)
+          if(isLikelyUrl(v)){
             const imgUrl = gdriveImg(v);
-            return `<div class="mb-2">
-                      <div class="key">${escapeHtml(k)}</div>
-                      <img src="${imgUrl}" class="card-img" alt="${escapeHtml(k)}">
-                    </div>`;
+            if(imgUrl.includes("drive.google.com/thumbnail") || /\.(jpg|jpeg|png|gif)$/i.test(v)){
+              return `<div class="mb-2">
+                        <div class="key">${escapeHtml(k)}</div>
+                        <img src="${imgUrl}" class="card-img" alt="${escapeHtml(k)}">
+                      </div>`;
+            }
           }
 
-          // Fichiers (PDF, DOC)
+          // Fichiers (PDF, DOC, etc.)
           if(isLikelyUrl(v) && /\.(pdf|docx?|xlsx?|pptx?)$/i.test(v)){
             return `<div class="file-preview"><a href="${escapeUrl(v)}" target="_blank">${escapeHtml(k)}</a></div>`;
           }
@@ -106,7 +103,7 @@ function gdriveImg(url) {
           // Code projet
           if(lc(k).includes("code")) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><pre style="background:#f5f5f5;padding:5px;border-radius:4px;overflow:auto; max-height:200px;">${escapeHtml(v)}</pre></div>`;
 
-          // Texte classique
+          // Texte simple
           return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><div>${escapeHtml(v)}</div></div>`;
         }).filter(Boolean);
         if(items.length) sections.push(`<div class="mb-2"><div class="muted fw-semibold mb-1">${label}</div>${items.join("")}</div>`);
@@ -122,8 +119,13 @@ function gdriveImg(url) {
         const v = norm(row[k]);
         const parts = splitMulti(v);
         if(parts.length>1) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</span>`;
-        if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)) return `<img src="${gdriveImg(v)}" class="card-img">`;
-        if(isLikelyUrl(v)) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> <a href="${escapeUrl(v)}" target="_blank">${escapeHtml(v)}</a></span>`;
+        if(isLikelyUrl(v)){
+          const imgUrl = gdriveImg(v);
+          if(imgUrl.includes("drive.google.com/thumbnail") || /\.(jpg|jpeg|png|gif)$/i.test(v)){
+            return `<img src="${imgUrl}" class="card-img">`;
+          }
+          return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> <a href="${escapeUrl(v)}" target="_blank">${escapeHtml(v)}</a></span>`;
+        }
         return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${escapeHtml(v)}</span>`;
       });
 
