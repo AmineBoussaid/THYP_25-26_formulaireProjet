@@ -5,6 +5,8 @@ async function fetchProjectsCSV() {
     try {
         const response = await fetch(url);
         const csvText = await response.text();
+        console.log("CSV récupéré :", csvText);
+
 
         // Parse CSV en JSON
         const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
