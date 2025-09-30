@@ -1,5 +1,7 @@
 (function(){
+  // === CONFIG ===
   const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4ybpehNFsjedAtbGrVbK5g8N3tYesdpf03RnMoH4UsbWPDz_oYZ43rAXKF2b2a96ozzjD-LTpkV56/pub?gid=837220721&single=true&output=csv"; 
+
   const TITLE_HINTS = ["Titre du projet"];
   const SUMMARY_HINTS = ["Description détaillée"];
 
@@ -12,6 +14,7 @@
   let FILTERED = [];
   let ALL_KEYS = [];
 
+  // === UTILS ===
   const norm = s => (s||"").toString().trim();
   const lc = s => norm(s).toLowerCase();
 
@@ -42,51 +45,74 @@
     catch { return s; }
   }
 
+  // === Google Drive direct image ===
   function gdriveImg(url) {
     if (!url) return url;
     let id = null;
-    let urlObj;
-    try { urlObj = new URL(url); if (urlObj.searchParams.get("id")) id = urlObj.searchParams.get("id"); } catch (e) {}
-    if (!id) { let m = url.match(/\/d\/([-\w]{25,})/); if (m) id = m[1]; }
-    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1000` : url;
+
+    try {
+      let urlObj = new URL(url);
+      if (urlObj.searchParams.get("id")) id = urlObj.searchParams.get("id");
+    } catch (e) {}
+
+    if (!id) {
+      let m = url.match(/\/d\/([-\w]{25,})/);
+      if (m) id = m[1];
+    }
+    return id ? `https://drive.google.com/uc?id=${id}` : url;
   }
 
-  function buildCard(row){
+  // === BUILD CARDS ===
+function buildCard(row){
     const titleKey = pickFirstKey(row, TITLE_HINTS);
     const sumKey = pickFirstKey(row, SUMMARY_HINTS);
     const title = norm(row[titleKey]) || "Projet sans titre";
     const summary = norm(row[sumKey]) || "";
 
+    // --- Chercher la première image ---
+    let firstImg = null;
+    for(const val of Object.values(row)){
+        if(isLikelyUrl(val) && /\.(jpg|jpeg|png|gif)$/i.test(val)){
+            firstImg = gdriveImg(val);
+            break;
+        }
+    }
+
     const sections = [];
-    let firstImageHtml = "";
-
     for(const [label, columns] of Object.entries(GROUPS)){
-      const present = columns.map(c => Object.keys(row).find(k => lc(k) === lc(c))).filter(Boolean);
-      if(present.length){
-        const items = present.map(k => {
-          const v = norm(row[k]);
-          if(!v) return null;
+        const present = columns.map(c => Object.keys(row).find(k => lc(k) === lc(c))).filter(Boolean);
+        if(present.length){
+            const items = present.map(k => {
+                const v = norm(row[k]);
+                if(!v) return null;
 
-          if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)){
-            const imgUrl = gdriveImg(v);
-            const imgTag = `<img src="${imgUrl}" class="card-img" alt="${escapeHtml(k)}" onclick="showLightbox('${imgUrl}')">`;
-            if(!firstImageHtml) { firstImageHtml = imgTag; return null; }
-            return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div>${imgTag}</div>`;
-          }
+                // --- On ignore l'image principale ici ---
+                if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)){
+                    if(gdriveImg(v) === firstImg) return null; // ne pas répéter
+                    const imgUrl = gdriveImg(v);
+                    return `<div class="mb-2">
+                              <div class="key">${escapeHtml(k)}</div>
+                              <img src="${imgUrl}" class="card-img" alt="${escapeHtml(k)}">
+                            </div>`;
+                }
 
-          if(isLikelyUrl(v) && /\.(pdf|docx?|xlsx?|pptx?)$/i.test(v)){
-            return `<div class="file-preview"><a href="${escapeUrl(v)}" target="_blank">${escapeHtml(k)}</a></div>`;
-          }
+                // Fichiers (PDF, DOC)
+                if(isLikelyUrl(v) && /\.(pdf|docx?|xlsx?|pptx?)$/i.test(v)){
+                    return `<div class="file-preview"><a href="${escapeUrl(v)}" target="_blank">${escapeHtml(k)}</a></div>`;
+                }
 
-          const parts = splitMulti(v);
-          if(parts.length > 1) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div>${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</div>`;
+                // Multi-éléments
+                const parts = splitMulti(v);
+                if(parts.length > 1) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div>${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</div>`;
 
-          if(lc(k).includes("code")) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><pre style="background:#f5f5f5;padding:5px;border-radius:4px;overflow:auto; max-height:200px;">${escapeHtml(v)}</pre></div>`;
+                // Code projet
+                if(lc(k).includes("code")) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><pre style="background:#f5f5f5;padding:5px;border-radius:4px;overflow:auto; max-height:200px;">${escapeHtml(v)}</pre></div>`;
 
-          return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><div>${escapeHtml(v)}</div></div>`;
-        }).filter(Boolean);
-        if(items.length) sections.push(`<div class="mb-2"><div class="muted fw-semibold mb-1">${label}</div>${items.join("")}</div>`);
-      }
+                // Texte classique
+                return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><div>${escapeHtml(v)}</div></div>`;
+            }).filter(Boolean);
+            if(items.length) sections.push(`<div class="mb-2"><div class="muted fw-semibold mb-1">${label}</div>${items.join("")}</div>`);
+        }
     }
 
     const groupedKeys = new Set([].concat(...Object.values(GROUPS)).map(x=>lc(x)));
@@ -98,7 +124,7 @@
         const v = norm(row[k]);
         const parts = splitMulti(v);
         if(parts.length>1) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</span>`;
-        if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)) return `<img src="${gdriveImg(v)}" class="card-img" onclick="showLightbox('${gdriveImg(v)}')">`;
+        if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)) return `<img src="${gdriveImg(v)}" class="card-img">`;
         if(isLikelyUrl(v)) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> <a href="${escapeUrl(v)}" target="_blank">${escapeHtml(v)}</a></span>`;
         return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${escapeHtml(v)}</span>`;
       });
@@ -107,7 +133,7 @@
       <div class="col">
         <div class="card h-100">
           <div class="card-body">
-            ${firstImageHtml}
+            ${firstImg ? `<img src="${firstImg}" class="card-img-top-small mb-2" alt="Image projet">` : ""}
             <h5 class="card-title mb-1">${escapeHtml(title)}</h5>
             ${summary ? `<p class="card-text">${escapeHtml(summary)}</p>` : ""}
             ${sections.join("")}
@@ -116,7 +142,8 @@
         </div>
       </div>
     `;
-  }
+}
+
 
   function render(){
     const grid = document.getElementById("grid");
@@ -144,27 +171,20 @@
     complete: function(results){
       RAW = results.data;
       FILTERED = [...RAW];
-      ALL_KEYS = Object.keys(RAW[0]||{});
-      const select = document.getElementById("keySelect");
-      ALL_KEYS.forEach(k=>{const opt=document.createElement("option");opt.value=k;opt.textContent=k;select.appendChild(opt);});
+      ALL_KEYS = Object.keys(RAW[0] || {});
+      const sel = document.getElementById("keySelect");
+      ALL_KEYS.forEach(k=>{ const opt = document.createElement("option"); opt.value=k; opt.textContent=k; sel.appendChild(opt); });
       document.getElementById("downloadCsv").href = CSV_URL;
       render();
     }
   });
 
   document.getElementById("q").addEventListener("input", e=>{
-    filter(e.target.value, document.getElementById("keySelect").value);
+    const key = document.getElementById("keySelect").value || null;
+    filter(e.target.value, key);
   });
-
   document.getElementById("keySelect").addEventListener("change", e=>{
-    filter(document.getElementById("q").value, e.target.value);
+    const q = document.getElementById("q").value || "";
+    filter(q, e.target.value || null);
   });
-
-  // Lightbox
-  window.showLightbox = function(src){
-    const lb = document.getElementById("lightbox");
-    const img = document.getElementById("lightbox-img");
-    img.src = src;
-    lb.style.display = "flex";
-  }
 })();
