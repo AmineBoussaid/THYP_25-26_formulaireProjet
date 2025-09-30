@@ -1,38 +1,48 @@
+/* === Cartes projet === */
 .card {
   border-radius: 1rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+  max-width: 360px;
+  margin: auto;
+}
+.card:hover {
+  transform: translateY(-4px);
 }
 .card-title {
   font-weight: 600;
+  font-size: 1.2rem;
+  margin-top: 0.5rem;
 }
 
-.card-img {
+/* Image projet */
+.card-img-top {
   width: 100%;
-  max-height: 200px;
+  height: 160px;
   object-fit: cover;
+  border-radius: 0.75rem 0.75rem 0 0;
+  cursor: pointer;
+}
+.card-body {
+  padding: 1rem;
+  font-size: 0.9rem;
+  word-wrap: break-word;
+}
+
+/* Recherche */
+.searchbar {
+  border: 1px solid #ddd;
+}
+.searchbar input {
   border-radius: 0.5rem;
-  margin-bottom: 0.5rem;
+  border: 1px solid #ccc;
 }
-
-.file-preview {
-  display: inline-block;
-  width: 100%;
-  max-height: 120px;
-  overflow: hidden;
-  text-align: center;
-  background: #f8f9fa;
+.searchbar select, 
+.searchbar .btn {
   border-radius: 0.5rem;
-  padding: 0.5rem;
-  margin-bottom: 0.3rem;
 }
 
-.file-preview a {
-  display: block;
-  color: #0d6efd;
-  text-decoration: none;
-  font-weight: 500;
-}
-
+/* Tags / Pills */
 .pill {
   display: inline-block;
   background-color: #e0e0e0;
@@ -43,16 +53,32 @@
   font-size: 0.8rem;
 }
 
+/* Fichiers */
+.file-preview {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+.file-preview a {
+  display: block;
+  color: #0d6efd;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* Autres */
 .badge-kv {
   margin: 0.1rem 0.2rem;
   font-size: 0.8rem;
 }
-
 .key {
   font-weight: 600;
   margin-right: 0.3rem;
 }
-
 .muted {
   color: #6c757d;
 }
