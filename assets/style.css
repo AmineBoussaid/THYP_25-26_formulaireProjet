@@ -1,73 +1,19 @@
-/* === GLOBAL === */
-body {
-  background-color: #f5f6f8;
-  font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  color: #333;
-}
-
-h1 {
-  color: #222;
-}
-
-.muted {
-  color: #6c757d;
-}
-
-/* === SEARCHBAR === */
-.searchbar {
-  border: 1px solid #e0e0e0;
-}
-
-/* === CARDS === */
 .card {
   border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: transform 0.2s ease;
-  max-width: 420px;
-  margin: auto;
-  word-wrap: break-word;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
-.card:hover {
-  transform: translateY(-5px);
-}
-
 .card-title {
   font-weight: 600;
-  font-size: 1.1rem;
 }
 
-/* Image projet */
-.card-img-top {
-  width: 100%;
-  max-height: 160px;
-  object-fit: contain;
-  padding: 0.5rem;
-  border-bottom: 1px solid #eee;
-  background: #fff;
-  cursor: pointer;
-}
-
-.card-img-top-small {
-  width: 100%;
-  max-height: 150px;
-  object-fit: cover;
-  border-radius: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-
-/* Autres images */
 .card-img {
   width: 100%;
   max-height: 200px;
   object-fit: cover;
   border-radius: 0.5rem;
   margin-bottom: 0.5rem;
-  cursor: pointer;
 }
 
-/* Fichiers */
 .file-preview {
   display: inline-block;
   width: 100%;
@@ -87,7 +33,6 @@ h1 {
   font-weight: 500;
 }
 
-/* Tags & badges */
 .pill {
   display: inline-block;
   background-color: #e0e0e0;
@@ -106,4 +51,8 @@ h1 {
 .key {
   font-weight: 600;
   margin-right: 0.3rem;
+}
+
+.muted {
+  color: #6c757d;
 }
