@@ -1,43 +1,27 @@
-/* Texte dans la carte */
-.card-body {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+.card-body, .card-text, .key, .pill, .badge-kv, .file-preview, pre {
+    word-wrap: break-word;       /* Coupe les mots trop longs */
+    overflow-wrap: break-word;   /* Compatibilité */
+    word-break: break-word;      /* Force le retour à la ligne */
+    max-width: 100%;             /* Ne dépasse jamais le parent */
+    white-space: normal;         /* Empêche le texte de rester sur une seule ligne */
 }
 
-/* Texte long dans titres, labels, badges, code, etc. */
-.card-text, .key, .pill, .badge-kv, .file-preview, pre, .muted, .card-title {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+.file-preview a, .badge-kv a {
+    word-break: break-all;       /* Force les URLs à passer à la ligne */
 }
-
-/* Code projet */
 pre {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  max-width: 100%;
-  overflow: auto;
-  background: #f5f5f5;
-  padding: 5px;
-  border-radius: 4px;
-  max-height: 200px;
+    white-space: pre-wrap;       /* Permet le retour à la ligne automatique */
+    word-wrap: break-word;
+    overflow: auto;              /* Scroll si très long */
+    max-width: 100%;             /* Limite à la largeur du conteneur */
 }
-
-/* Images */
-.card-img-top {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin-bottom: 10px;
+.card-img, img {
+    max-width: 100%;
+    height: auto;
+    display: block;
 }
-
-/* Badges et pills */
-.pill, .badge-kv {
-  display: inline-block;
-  margin: 2px 2px 2px 0;
-  word-break: break-word;
-}
-
-/* Liens longs */
-.file-preview a {
-  word-break: break-word;
+.badge-kv {
+    display: inline-block;
+    max-width: 100%;
+    overflow-wrap: break-word;
 }
