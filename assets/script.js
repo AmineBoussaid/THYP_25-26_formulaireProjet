@@ -65,8 +65,7 @@
     return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1000` : url;
   }
 
-  // === BUILD CARDS ===
- // === BUILD CARDS ===
+// === BUILD CARDS ===
 function buildCard(row){
   const titleKey = pickFirstKey(row, TITLE_HINTS);
   const sumKey = pickFirstKey(row, SUMMARY_HINTS);
