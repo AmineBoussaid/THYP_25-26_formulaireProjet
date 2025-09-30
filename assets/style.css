@@ -1,27 +1,171 @@
+/* ===== Texte et conteneurs ===== */
 .card-body, .card-text, .key, .pill, .badge-kv, .file-preview, pre {
-    word-wrap: break-word;       /* Coupe les mots trop longs */
-    overflow-wrap: break-word;   /* Compatibilité */
-    word-break: break-word;      /* Force le retour à la ligne */
-    max-width: 100%;             /* Ne dépasse jamais le parent */
-    white-space: normal;         /* Empêche le texte de rester sur une seule ligne */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+    white-space: normal;
 }
 
+.card-title {
+    overflow-wrap: anywhere;
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: #1a1a1a; /* texte plus sombre */
+}
+
+.muted {
+    color: #777;
+    font-size: 0.85rem;
+}
+
+/* ===== Prévention du dépassement pour URLs/Emails ===== */
 .file-preview a, .badge-kv a {
-    word-break: break-all;       /* Force les URLs à passer à la ligne */
+    word-break: break-all;
+    color: #0d6efd; /* bleu clair pour les liens */
 }
+
 pre {
-    white-space: pre-wrap;       /* Permet le retour à la ligne automatique */
+    white-space: pre-wrap;
     word-wrap: break-word;
-    overflow: auto;              /* Scroll si très long */
-    max-width: 100%;             /* Limite à la largeur du conteneur */
-}
-.card-img, img {
+    overflow: auto;
     max-width: 100%;
+    background: #e0f7fa; /* fond bleu pâle */
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #006064;
+}
+
+/* ===== Images ===== */
+.card-img {
+    max-width: 60%;  
     height: auto;
     display: block;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ddd;
 }
+
+.profile-img {
+    max-width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+}
+
+/* ===== Badges / pills ===== */
+.pill {
+    display: inline-block;
+    background-color: #ffd54f; /* jaune vif */
+    color: #1a1a1a;
+    padding: 3px 8px;
+    margin: 2px 2px 2px 0;
+    border-radius: 12px;
+    font-size: 0.75rem;
+}
+
 .badge-kv {
     display: inline-block;
     max-width: 100%;
-    overflow-wrap: break-word;
+    margin: 2px 0;
+    padding: 3px 6px;
+    background-color: #c5cae9; /* violet clair */
+    color: #1a1a1a;
+    font-size: 0.8rem;
+    border-radius: 5px;
+    word-break: break-word;
+}
+
+/* ===== Carte ===== */
+.card {
+    border-radius: 8px;
+    border: 1px solid #bbb;
+    padding: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background-color: #fdfdfd; /* léger fond blanc cassé */
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* ===== Header ===== */
+header {
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    font-weight: 700;
+    font-size: 1.7rem;
+    color: #0d47a1; /* bleu foncé */
+}
+
+/* ===== Barre de recherche ===== */
+.searchbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.searchbar input {
+    flex-grow: 1;
+    min-width: 180px;
+    border-radius: 8px;
+    border: 1px solid #0d6efd;
+}
+
+.searchbar select {
+    flex-shrink: 0;
+    min-width: 180px;
+    border-radius: 8px;
+    border: 1px solid #0d6efd;
+}
+
+#downloadCsv {
+    flex-shrink: 0;
+    background-color: #ff7043; /* orange vif */
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    transition: background 0.2s;
+}
+
+#downloadCsv:hover {
+    background-color: #f4511e; /* orange plus foncé au hover */
+}
+
+/* ===== Grille ===== */
+#grid {
+    margin-top: 15px;
+}
+
+/* ===== Footer / compteur ===== */
+#count {
+    font-size: 0.85rem;
+    color: #555;
+}
+
+/* ===== Style général ===== */
+body {
+    background-color: #f0f4f8; /* bleu très clair */
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #212529;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
