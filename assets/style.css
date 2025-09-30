@@ -1,91 +1,58 @@
-/* === Global === */
-body {
-  background-color: #f4f6f9;
-  font-family: "Segoe UI", Roboto, sans-serif;
-}
-
-/* === Search bar === */
-.searchbar {
-  border: 1px solid #dee2e6;
-}
-
-/* === Cards === */
 .card {
   border-radius: 1rem;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-  max-width: 360px;  /* largeur fixe */
-  margin: auto;
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-}
-
-/* Image projet (toujours en haut) */
-.card-img-top {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  cursor: pointer;
-}
-
-/* Texte */
 .card-title {
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-.card-text {
-  font-size: 0.9rem;
-  color: #444;
-}
-
-/* Sections */
-.key {
   font-weight: 600;
-  margin-right: 0.3rem;
-  color: #333;
-}
-.muted {
-  color: #6c757d;
-  font-size: 0.85rem;
 }
 
-/* Pills */
+.card-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.file-preview {
+  display: inline-block;
+  width: 100%;
+  max-height: 120px;
+  overflow: hidden;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.file-preview a {
+  display: block;
+  color: #0d6efd;
+  text-decoration: none;
+  font-weight: 500;
+}
+
 .pill {
   display: inline-block;
-  background-color: #e9ecef;
+  background-color: #e0e0e0;
   color: #333;
-  padding: 0.25rem 0.6rem;
-  margin: 0.15rem;
+  padding: 0.2rem 0.6rem;
+  margin: 0.1rem;
   border-radius: 0.5rem;
   font-size: 0.8rem;
 }
 
-/* Badges */
 .badge-kv {
   margin: 0.1rem 0.2rem;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
 }
 
-/* Lightbox */
-.lightbox {
-  display: none;
-  position: fixed;
-  z-index: 1050;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8);
-  justify-content: center;
-  align-items: center;
+.key {
+  font-weight: 600;
+  margin-right: 0.3rem;
 }
-.lightbox img {
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-}
-.lightbox.active {
-  display: flex;
+
+.muted {
+  color: #6c757d;
 }
