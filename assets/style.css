@@ -1,64 +1,49 @@
-/* === GLOBAL === */
+/* === Global === */
 body {
-  background-color: #f5f6f8;
-  font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  color: #333;
+  background: #f8f9fa;
+  font-family: "Segoe UI", sans-serif;
 }
 
-h1 {
-  color: #222;
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
 }
 
 .muted {
   color: #6c757d;
 }
 
-/* === SEARCHBAR === */
-.searchbar {
-  border: 1px solid #e0e0e0;
-}
-
-/* === CARDS === */
+/* === Cards === */
 .card {
   border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: transform 0.2s ease;
-  max-width: 420px;
-  margin: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  max-width: 100%;
   word-wrap: break-word;
 }
 
-.card:hover {
-  transform: translateY(-5px);
+.card-body {
+  display: flex;
+  flex-direction: column;
 }
 
 .card-title {
   font-weight: 600;
-  font-size: 1.1rem;
 }
 
-/* Image projet */
-.card-img-top {
-  width: 100%;
-  max-height: 160px;
-  object-fit: contain;
-  padding: 0.5rem;
-  border-bottom: 1px solid #eee;
-  background: #fff;
-  cursor: pointer;
-}
-
-/* Autres images */
 .card-img {
   width: 100%;
-  max-height: 200px;
+  max-height: 150px;
   object-fit: cover;
   border-radius: 0.5rem;
   margin-bottom: 0.5rem;
   cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
-/* Fichiers */
+.card-img:hover {
+  transform: scale(1.05);
+}
+
+/* === File preview === */
 .file-preview {
   display: inline-block;
   width: 100%;
@@ -78,7 +63,6 @@ h1 {
   font-weight: 500;
 }
 
-/* Tags & badges */
 .pill {
   display: inline-block;
   background-color: #e0e0e0;
@@ -97,4 +81,35 @@ h1 {
 .key {
   font-weight: 600;
   margin-right: 0.3rem;
+}
+
+/* === Searchbar === */
+.searchbar input,
+.searchbar select,
+.searchbar .btn {
+  height: 50px;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+}
+
+/* === Lightbox === */
+.lightbox {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.lightbox-img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }

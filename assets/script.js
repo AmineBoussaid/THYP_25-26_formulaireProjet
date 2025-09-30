@@ -1,7 +1,5 @@
 (function(){
-  // === CONFIG ===
   const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4ybpehNFsjedAtbGrVbK5g8N3tYesdpf03RnMoH4UsbWPDz_oYZ43rAXKF2b2a96ozzjD-LTpkV56/pub?gid=837220721&single=true&output=csv"; 
-
   const TITLE_HINTS = ["Titre du projet"];
   const SUMMARY_HINTS = ["Description détaillée"];
 
@@ -14,7 +12,6 @@
   let FILTERED = [];
   let ALL_KEYS = [];
 
-  // === UTILS ===
   const norm = s => (s||"").toString().trim();
   const lc = s => norm(s).toLowerCase();
 
@@ -45,39 +42,24 @@
     catch { return s; }
   }
 
-  // === Google Drive direct image ===
   function gdriveImg(url) {
     if (!url) return url;
     let id = null;
-
-    try {
-      let urlObj = new URL(url);
-      if (urlObj.searchParams.get("id")) id = urlObj.searchParams.get("id");
-    } catch (e) {}
-
-    if (!id) {
-      let m = url.match(/\/d\/([-\w]{25,})/);
-      if (m) id = m[1];
-    }
-    return id ? `https://drive.google.com/uc?id=${id}` : url;
+    let urlObj;
+    try { urlObj = new URL(url); if (urlObj.searchParams.get("id")) id = urlObj.searchParams.get("id"); } catch (e) {}
+    if (!id) { let m = url.match(/\/d\/([-\w]{25,})/); if (m) id = m[1]; }
+    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1000` : url;
   }
 
-  // === BUILD CARDS ===
   function buildCard(row){
     const titleKey = pickFirstKey(row, TITLE_HINTS);
     const sumKey = pickFirstKey(row, SUMMARY_HINTS);
     const title = norm(row[titleKey]) || "Projet sans titre";
     const summary = norm(row[sumKey]) || "";
 
-    let projectImage = "";
-    if (row["Icône ou logo du projet"]) {
-      const imgUrl = gdriveImg(norm(row["Icône ou logo du projet"]));
-      projectImage = `<a href="${imgUrl}" data-lightbox="projet" data-title="${escapeHtml(title)}">
-                        <img src="${imgUrl}" class="card-img-top" alt="Visuel projet">
-                      </a>`;
-    }
-
     const sections = [];
+    let firstImageHtml = "";
+
     for(const [label, columns] of Object.entries(GROUPS)){
       const present = columns.map(c => Object.keys(row).find(k => lc(k) === lc(c))).filter(Boolean);
       if(present.length){
@@ -87,12 +69,9 @@
 
           if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)){
             const imgUrl = gdriveImg(v);
-            return `<div class="mb-2">
-                      <div class="key">${escapeHtml(k)}</div>
-                      <a href="${imgUrl}" data-lightbox="projet" data-title="${escapeHtml(k)}">
-                        <img src="${imgUrl}" class="card-img" alt="${escapeHtml(k)}">
-                      </a>
-                    </div>`;
+            const imgTag = `<img src="${imgUrl}" class="card-img" alt="${escapeHtml(k)}" onclick="showLightbox('${imgUrl}')">`;
+            if(!firstImageHtml) { firstImageHtml = imgTag; return null; }
+            return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div>${imgTag}</div>`;
           }
 
           if(isLikelyUrl(v) && /\.(pdf|docx?|xlsx?|pptx?)$/i.test(v)){
@@ -110,14 +89,29 @@
       }
     }
 
+    const groupedKeys = new Set([].concat(...Object.values(GROUPS)).map(x=>lc(x)));
+    if(titleKey) groupedKeys.add(lc(titleKey));
+    if(sumKey) groupedKeys.add(lc(sumKey));
+
+    const misc = Object.keys(row).filter(k=>lc(k) && !groupedKeys.has(lc(k)) && norm(row[k]))
+      .map(k=>{
+        const v = norm(row[k]);
+        const parts = splitMulti(v);
+        if(parts.length>1) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</span>`;
+        if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)) return `<img src="${gdriveImg(v)}" class="card-img" onclick="showLightbox('${gdriveImg(v)}')">`;
+        if(isLikelyUrl(v)) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> <a href="${escapeUrl(v)}" target="_blank">${escapeHtml(v)}</a></span>`;
+        return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${escapeHtml(v)}</span>`;
+      });
+
     return `
       <div class="col">
         <div class="card h-100">
-          ${projectImage}
           <div class="card-body">
+            ${firstImageHtml}
             <h5 class="card-title mb-1">${escapeHtml(title)}</h5>
             ${summary ? `<p class="card-text">${escapeHtml(summary)}</p>` : ""}
             ${sections.join("")}
+            ${misc.length ? `<div class="mt-2">${misc.join(" ")}</div>` : ""}
           </div>
         </div>
       </div>
@@ -150,20 +144,27 @@
     complete: function(results){
       RAW = results.data;
       FILTERED = [...RAW];
-      ALL_KEYS = Object.keys(RAW[0] || {});
-      const sel = document.getElementById("keySelect");
-      ALL_KEYS.forEach(k=>{ const opt = document.createElement("option"); opt.value=k; opt.textContent=k; sel.appendChild(opt); });
+      ALL_KEYS = Object.keys(RAW[0]||{});
+      const select = document.getElementById("keySelect");
+      ALL_KEYS.forEach(k=>{const opt=document.createElement("option");opt.value=k;opt.textContent=k;select.appendChild(opt);});
       document.getElementById("downloadCsv").href = CSV_URL;
       render();
     }
   });
 
   document.getElementById("q").addEventListener("input", e=>{
-    const key = document.getElementById("keySelect").value || null;
-    filter(e.target.value, key);
+    filter(e.target.value, document.getElementById("keySelect").value);
   });
+
   document.getElementById("keySelect").addEventListener("change", e=>{
-    const q = document.getElementById("q").value || "";
-    filter(q, e.target.value || null);
+    filter(document.getElementById("q").value, e.target.value);
   });
+
+  // Lightbox
+  window.showLightbox = function(src){
+    const lb = document.getElementById("lightbox");
+    const img = document.getElementById("lightbox-img");
+    img.src = src;
+    lb.style.display = "flex";
+  }
 })();
