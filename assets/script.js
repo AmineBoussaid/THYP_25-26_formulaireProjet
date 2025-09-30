@@ -14,7 +14,7 @@
   let FILTERED = [];
   let ALL_KEYS = [];
 
-  // === UTILITAIRES ===
+  // === UTILS ===
   const norm = s => (s||"").toString().trim();
   const lc = s => norm(s).toLowerCase();
 
@@ -45,24 +45,21 @@
     catch { return s; }
   }
 
-  // === Google Drive image direct link ===
+  // === Google Drive direct image ===
   function gdriveImg(url) {
     if (!url) return url;
     let id = null;
 
     try {
       let urlObj = new URL(url);
-      if (urlObj.searchParams.get("id")) {
-        id = urlObj.searchParams.get("id");
-      }
+      if (urlObj.searchParams.get("id")) id = urlObj.searchParams.get("id");
     } catch (e) {}
 
     if (!id) {
       let m = url.match(/\/d\/([-\w]{25,})/);
       if (m) id = m[1];
     }
-
-    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1000` : url;
+    return id ? `https://drive.google.com/uc?id=${id}` : url;
   }
 
   // === BUILD CARDS ===
@@ -72,6 +69,14 @@
     const title = norm(row[titleKey]) || "Projet sans titre";
     const summary = norm(row[sumKey]) || "";
 
+    let projectImage = "";
+    if (row["Icône ou logo du projet"]) {
+      const imgUrl = gdriveImg(norm(row["Icône ou logo du projet"]));
+      projectImage = `<a href="${imgUrl}" data-lightbox="projet" data-title="${escapeHtml(title)}">
+                        <img src="${imgUrl}" class="card-img-top" alt="Visuel projet">
+                      </a>`;
+    }
+
     const sections = [];
     for(const [label, columns] of Object.entries(GROUPS)){
       const present = columns.map(c => Object.keys(row).find(k => lc(k) === lc(c))).filter(Boolean);
@@ -80,63 +85,39 @@
           const v = norm(row[k]);
           if(!v) return null;
 
-          // Images (Drive ou classiques)
-          if(isLikelyUrl(v)){
+          if(isLikelyUrl(v) && /\.(jpg|jpeg|png|gif)$/i.test(v)){
             const imgUrl = gdriveImg(v);
-            if(imgUrl.includes("drive.google.com/thumbnail") || /\.(jpg|jpeg|png|gif)$/i.test(v)){
-              return `<div class="mb-2">
-                        <div class="key">${escapeHtml(k)}</div>
+            return `<div class="mb-2">
+                      <div class="key">${escapeHtml(k)}</div>
+                      <a href="${imgUrl}" data-lightbox="projet" data-title="${escapeHtml(k)}">
                         <img src="${imgUrl}" class="card-img" alt="${escapeHtml(k)}">
-                      </div>`;
-            }
+                      </a>
+                    </div>`;
           }
 
-          // Fichiers (PDF, DOC, etc.)
           if(isLikelyUrl(v) && /\.(pdf|docx?|xlsx?|pptx?)$/i.test(v)){
             return `<div class="file-preview"><a href="${escapeUrl(v)}" target="_blank">${escapeHtml(k)}</a></div>`;
           }
 
-          // Multi-éléments
           const parts = splitMulti(v);
           if(parts.length > 1) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div>${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</div>`;
 
-          // Code projet
           if(lc(k).includes("code")) return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><pre style="background:#f5f5f5;padding:5px;border-radius:4px;overflow:auto; max-height:200px;">${escapeHtml(v)}</pre></div>`;
 
-          // Texte simple
           return `<div class="mb-2"><div class="key">${escapeHtml(k)}</div><div>${escapeHtml(v)}</div></div>`;
         }).filter(Boolean);
         if(items.length) sections.push(`<div class="mb-2"><div class="muted fw-semibold mb-1">${label}</div>${items.join("")}</div>`);
       }
     }
 
-    const groupedKeys = new Set([].concat(...Object.values(GROUPS)).map(x=>lc(x)));
-    if(titleKey) groupedKeys.add(lc(titleKey));
-    if(sumKey) groupedKeys.add(lc(sumKey));
-
-    const misc = Object.keys(row).filter(k=>lc(k) && !groupedKeys.has(lc(k)) && norm(row[k]))
-      .map(k=>{
-        const v = norm(row[k]);
-        const parts = splitMulti(v);
-        if(parts.length>1) return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${parts.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join(" ")}</span>`;
-        if(isLikelyUrl(v)){
-          const imgUrl = gdriveImg(v);
-          if(imgUrl.includes("drive.google.com/thumbnail") || /\.(jpg|jpeg|png|gif)$/i.test(v)){
-            return `<img src="${imgUrl}" class="card-img">`;
-          }
-          return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> <a href="${escapeUrl(v)}" target="_blank">${escapeHtml(v)}</a></span>`;
-        }
-        return `<span class="badge bg-light text-dark badge-kv"><span class="key">${escapeHtml(k)}:</span> ${escapeHtml(v)}</span>`;
-      });
-
     return `
       <div class="col">
         <div class="card h-100">
+          ${projectImage}
           <div class="card-body">
             <h5 class="card-title mb-1">${escapeHtml(title)}</h5>
             ${summary ? `<p class="card-text">${escapeHtml(summary)}</p>` : ""}
             ${sections.join("")}
-            ${misc.length ? `<div class="mt-2">${misc.join(" ")}</div>` : ""}
           </div>
         </div>
       </div>
