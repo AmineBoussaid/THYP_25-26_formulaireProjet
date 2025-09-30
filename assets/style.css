@@ -1,28 +1,43 @@
+/* Texte dans la carte */
 .card-body {
-  word-wrap: break-word;       /* Coupe les mots trop longs */
-  overflow-wrap: break-word;   /* Compatibilité */
-}
-
-.card-text, .key, .pill, .badge-kv, .file-preview, pre {
-  overflow-wrap: break-word;  /* Assure que tout texte long va à la ligne */
-  word-break: break-word;     /* Force la ligne si nécessaire */
-}
-
-pre {
-  white-space: pre-wrap;      /* Le code se replie à l’intérieur */
   word-wrap: break-word;
-  max-width: 100%;            /* Ne dépasse pas le container */
+  overflow-wrap: break-word;
 }
 
-.card-img {
+/* Texte long dans titres, labels, badges, code, etc. */
+.card-text, .key, .pill, .badge-kv, .file-preview, pre, .muted, .card-title {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Code projet */
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-width: 100%;
+  overflow: auto;
+  background: #f5f5f5;
+  padding: 5px;
+  border-radius: 4px;
+  max-height: 200px;
+}
+
+/* Images */
+.card-img-top {
   max-width: 100%;
   height: auto;
+  display: block;
+  margin-bottom: 10px;
 }
 
+/* Badges et pills */
+.pill, .badge-kv {
+  display: inline-block;
+  margin: 2px 2px 2px 0;
+  word-break: break-word;
+}
+
+/* Liens longs */
 .file-preview a {
-  word-break: break-word;      /* Les URL longues ne sortent pas du bloc */
-}
-
-.muted, .card-title {
-  overflow-wrap: anywhere;     /* Si très long mot/titre, forcer le retour à la ligne */
+  word-break: break-word;
 }
